@@ -4,6 +4,15 @@
 <div class="container">
     <form action="{{ route('admin.projects.store') }}" enctype="multipart/form-data" method="POST">
     @csrf
+    @if ($errors->any())
+        <div class="alert alert-danger mt-5 mb-0">
+            <ul class="m-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
         <div class="input-group d-flex justify-content-between p-5">
             <div class="w-25 pe-3">
                 <label class="mb-2" for="name">Nome progetto</label>

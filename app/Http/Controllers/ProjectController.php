@@ -34,6 +34,23 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string',
+            'completion_date' => 'nullable|date',
+            'author' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png',
+            'type_id' => 'nullable|exists:type,id',
+            'technologies' => 'nullable|exists:technologies,id'
+        ], [
+            'name.required' => 'Il nome del progetto è obbligatorio.',
+            'author.required' => "L'autore del progetto è obbligatorio.",
+            'completion_date.date' => 'La data inserita non è valida.',
+            'image.image' => 'L\'immagine deve essere un file di tipo immagine',
+            'image.mimes' => 'L\'immagine deve essere un file png, jpg o jpeg',
+            'type_id' => 'La tipologia scelta non è valida',
+            'technologies' => 'Le tecnologie scelte non sono valide'
+        ]);
+
         $data = $request->all();
         $project = new Project();
         
@@ -81,6 +98,23 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
+        $request->validate([
+            'name' => 'required|string',
+            'completion_date' => 'nullable|date',
+            'author' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png',
+            'type_id' => 'nullable|exists:types,id',
+            'technologies' => 'nullable|exists:technologies,id'
+        ], [
+            'name.required' => 'Il nome del progetto è obbligatorio.',
+            'author.required' => "L'autore del progetto è obbligatorio.",
+            'completion_date.date' => 'La data inserita non è valida.',
+            'image.image' => 'L\'immagine deve essere un file di tipo immagine',
+            'image.mimes' => 'L\'immagine deve essere un file png, jpg o jpeg',
+            'type_id' => 'La tipologia scelta non è valida',
+            'technologies' => 'Le tecnologie scelte non sono valide'
+        ]);
+        
         $old_p_name = $project->name;
         $data = $request->all();
 
@@ -113,7 +147,7 @@ class ProjectController extends Controller
         if ($project->image) Storage::delete($project->image);
 
         if (count($project->technologies)) $project->technologies()->detach();
-        
+
         $project->delete();
         return to_route('dashboard')->with('deleted-allert', "Il progetto $project->name è stato eliminato");
     }
