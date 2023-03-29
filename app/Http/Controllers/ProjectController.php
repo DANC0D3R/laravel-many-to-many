@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\Type;
+use App\Models\Technology;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
@@ -23,7 +25,8 @@ class ProjectController extends Controller
     public function create()
     {
         $types = Type::all();
-        return view('admin.projects.create', compact('types'));
+        $technologies = Technology::select('id', 'label')->get();
+        return view('admin.projects.create', compact('types', 'technologies'));
     }
 
     /**
@@ -47,6 +50,8 @@ class ProjectController extends Controller
 
         $project->save();
 
+        if (Arr::exists($data, 'technologies')) $project->technologies()->attach($data['technologies']);
+
         return to_route('dashboard')->with('created-allert', "Il progetto $project->name è stato aggiunto");
     }
 
@@ -64,8 +69,11 @@ class ProjectController extends Controller
     public function edit(Project $project)
     {
         $types = Type::all();
+        $technologies = Technology::select('id', 'label')->get();
+
+        $project_technologies = $project->technologies->pluck('id')->toArray();
         
-        return view('admin.projects.edit', compact('project', 'types'));
+        return view('admin.projects.edit', compact('project', 'types', 'technologies', 'project_technologies'));
     }
 
     /**
@@ -91,6 +99,9 @@ class ProjectController extends Controller
 
         $project->save();
 
+        if (Arr::exists($data, 'technologies')) $project->technologies()->sync($data['technologies']);
+        else $project->technologies()->detach();
+        
         return to_route('dashboard')->with('updated-allert', "Il progetto $old_p_name è stato modificato");
     }
 
@@ -99,6 +110,10 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project)
     {
+        if ($project->image) Storage::delete($project->image);
+
+        if (count($project->technologies)) $project->technologies()->detach();
+        
         $project->delete();
         return to_route('dashboard')->with('deleted-allert', "Il progetto $project->name è stato eliminato");
     }
